@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+REPO_ROOT=$(git rev-parse --show-toplevel) || exit 0
+cd "$REPO_ROOT" || exit 1
+FORMATTER="toolkit/bin/google-java-format.jar"
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.java$' || true)
+[ -n "$FILES" ] || exit 0
+echo "🎨 Formatting Java files (google-java-format)..."
+echo $FILES
+echo "$FILES" | xargs java -jar "$FORMATTER" --replace
+echo "$FILES" | xargs git add
+echo "✅ Java formatting complete"
