@@ -4,13 +4,29 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    "@semantic-release/github",
-    "@semantic-release/git",
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "if ./gradlew -q tasks --all | grep -q '^publish$'; then ./gradlew publish -Pversion=${nextRelease.version}; else echo 'No publish task found, skipping Gradle publish'; fi"
+        "publishCmd": "\
+          ./gradlew jar && \
+           if ./gradlew -q tasks --all | grep -q '^publish$'; then \
+            ./gradlew publish -Pversion=${nextRelease.version}; \
+          else \
+            echo 'No publish task, skipping publish'; \
+          fi"
       }
-    ]
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "build/libs/*.jar",
+            "label": "JAR artifacts"
+          }
+        ]
+      }
+    ],
+    "@semantic-release/git"
   ]
 }
