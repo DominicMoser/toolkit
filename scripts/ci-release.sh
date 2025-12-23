@@ -1,12 +1,11 @@
 #!/bin/sh
 set -e
-
+echo "Running ci-release script"
+echo "Marking directory as safe"
+git config --global --add safe.directory "$(pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
-# Making repo as save
-git config --global --add safe.directory "$(pwd)"
 echo "🔧 Bootstrapping CI environment (Alpine)"
-
 # --- Base packages ---
 apk add --no-cache \
   bash \
