@@ -35,4 +35,4 @@ cd ..
 # --- Run semantic-release ---
 echo "🚀 Running semantic-release"
 NODE_PATH="$REPO_ROOT/toolkit/node_modules" \
-  node "$REPO_ROOT/toolkit/node_modules/.bin/semantic-release" --dry-run
+  node "$REPO_ROOT/toolkit/node_modules/.bin/semantic-release"
