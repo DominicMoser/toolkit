@@ -4,7 +4,7 @@ then
   # Strip comments and blank lines, keep full message
   tmpfile="$(mktemp)"
 
-  sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$1" > "$tmpfile"
+  sed '/^[[:space:]]*#/d; ' "$1" > "$tmpfile"
   mv "$tmpfile" "$1"
   echo "---- commit-msg contents ----"
   cat "$1"
