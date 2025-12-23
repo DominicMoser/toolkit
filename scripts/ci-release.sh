@@ -17,7 +17,8 @@ apk add --no-cache \
 # --- Java (bootstrap JVM for Gradle) ---
 if ! command -v java >/dev/null 2>&1; then
   echo "☕ Installing OpenJDK (bootstrap)"
-  apk add --no-cache openjdk25-jre
+  apk add --no-cache openjdk25-jre openjdk25-jdk
+
 fi
 
 # --- Node.js (semantic-release) ---
