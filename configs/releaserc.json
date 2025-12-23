@@ -7,13 +7,7 @@
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "\
-          ./gradlew jar && \
-           if ./gradlew -q tasks --all | grep -q '^publish$'; then \
-            ./gradlew publish -Pversion=${nextRelease.version}; \
-          else \
-            echo 'No publish task, skipping publish'; \
-          fi"
+        "publishCmd": "./gradlew jar && if ./gradlew -q tasks --all | grep -q '^publish$'; then ./gradlew publish -Pversion=${nextRelease.version}; else echo 'No publish task, skipping publish'; fi"
       }
     ],
     [
