@@ -3,5 +3,11 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator"
+    [
+      "@semantic-release/exec",
+      {
+        "publishCmd": "if ./gradlew -q tasks --all | grep -q '^publish$'; then ./gradlew publish -Pversion=${nextRelease.version}; else echo 'No publish task found, skipping Gradle publish'; fi"
+      }
+    ],
   ]
 }
