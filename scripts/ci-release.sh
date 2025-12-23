@@ -3,7 +3,8 @@ set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
-
+# Making repo as save
+git config --global --add safe.directory "$(pwd)"
 echo "🔧 Bootstrapping CI environment (Alpine)"
 
 # --- Base packages ---
