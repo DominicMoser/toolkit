@@ -1,7 +1,17 @@
 #!/bin/sh
 if command -v npx > /dev/null 2>&1
 then
-  # fix for windows systems
+  # Strip comments and blank lines, keep full message
+  tmpfile="$(mktemp)"
+
+  sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$1" > "$tmpfile"
+  mv "$tmpfile" "$1"
+  echo "---- commit-msg contents ----"
+  cat "$1"
+  echo "-----------------------------"
+  # Windows PATH fix
   PATH="/c/Program Files/nodejs:$HOME/AppData/Roaming/npm/:$PATH"
-  npx --yes git-conventional-commits commit-msg-hook "$1" -c toolkit/configs/git-conventional-commits.yaml
+
+  npx --yes git-conventional-commits commit-msg-hook "$1" \
+    -c toolkit/configs/git-conventional-commits.yaml
 fi
