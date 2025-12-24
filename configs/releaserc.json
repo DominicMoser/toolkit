@@ -16,7 +16,6 @@
         "assets": [
           {
             "path": "build/libs/*.jar",
-            "label": "JAR artifacts"
           }
         ]
       }
