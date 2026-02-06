@@ -11,14 +11,17 @@ fi
 # Create a temporary file to hold the stripped commit message
 STRIPPED_MSG_FILE=$(mktemp)
 
-# Normalize line endings to LF and strip leading/trailing blank lines (including whitespace-only lines)
+# Normalize line endings to LF, strip comments, and strip leading/trailing blank lines (including whitespace-only lines)
 # Using awk for POSIX compliance and better control.
 awk '{ sub(/\r$/, ""); }
+     /^[[:space:]]*#/ { next }
      /[^[:space:]]/ { last=NR; if (!first) first=NR }
      { lines[NR]=$0 }
      END {
        if (first) {
-         for (i=first; i<=last; i++) print lines[i]
+         for (i=first; i<=last; i++) {
+           if (i in lines) print lines[i]
+         }
        }
      }' "$COMMIT_MSG_FILE" > "$STRIPPED_MSG_FILE"
 
