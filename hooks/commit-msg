@@ -1,17 +1,101 @@
 #!/bin/sh
-if command -v npx > /dev/null 2>&1
-then
-  # Strip comments and blank lines, keep full message
-  tmpfile="$(mktemp)"
 
-  sed '/^[[:space:]]*#/d; ' "$1" > "$tmpfile"
-  mv "$tmpfile" "$1"
-  echo "---- commit-msg contents ----"
-  cat "$1"
-  echo "-----------------------------"
-  # Windows PATH fix
-  PATH="/c/Program Files/nodejs:$HOME/AppData/Roaming/npm/:$PATH"
+# Get the commit message from the file passed as an argument
+COMMIT_MSG_FILE="$1"
 
-  npx --yes git-conventional-commits commit-msg-hook "$1" \
-    -c toolkit/configs/git-conventional-commits.yaml
+if [ -z "$COMMIT_MSG_FILE" ]; then
+    echo "ERROR: No commit message file provided."
+    exit 1
 fi
+
+# Create a temporary file to hold the stripped commit message
+STRIPPED_MSG_FILE=$(mktemp)
+
+# Normalize line endings to LF and strip leading/trailing blank lines (including whitespace-only lines)
+# Using awk for POSIX compliance and better control.
+awk '{ sub(/\r$/, ""); }
+     /[^[:space:]]/ { last=NR; if (!first) first=NR }
+     { lines[NR]=$0 }
+     END {
+       if (first) {
+         for (i=first; i<=last; i++) print lines[i]
+       }
+     }' "$COMMIT_MSG_FILE" > "$STRIPPED_MSG_FILE"
+
+# 1. Validate Header (First Line)
+# Pattern: <type>(<scope>)!: <description>
+# Type: build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test
+# Scope: non-empty, alphanumeric plus - and _
+# Description: non-empty, starts with exactly one space after colon
+# Using grep to match the header since [[]] is not POSIX.
+HEADER=$(head -n 1 "$STRIPPED_MSG_FILE")
+HEADER_REGEX="^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9_-]+\))?!?: [^ ].*"
+
+if ! echo "$HEADER" | grep -Eq "$HEADER_REGEX"; then
+    echo "ERROR: Invalid commit header format."
+    echo "Expected: <type>(<scope>)!: <description>"
+    echo "Actual:   $HEADER"
+    rm "$STRIPPED_MSG_FILE"
+    exit 1
+fi
+
+# 2. Validate Body and Footers
+# Read file line by line
+line_num=0
+found_footer=0
+while IFS= read -r line || [ -n "$line" ]; do
+    line_num=$((line_num + 1))
+    
+    # Check second line
+    if [ "$line_num" -eq 2 ]; then
+        if [ -n "$line" ]; then
+            echo "ERROR: Second line of commit message must be empty."
+            rm "$STRIPPED_MSG_FILE"
+            exit 1
+        fi
+        continue
+    fi
+    
+    # Only care about lines 3 and onwards for footer validation logic
+    if [ "$line_num" -ge 3 ]; then
+        FOOTER_TOKEN_REGEX="^([a-zA-Z0-9-]+: |[a-zA-Z0-9-]+ #[0-9]+|BREAKING CHANGE: )"
+        
+        if echo "$line" | grep -Eq "$FOOTER_TOKEN_REGEX"; then
+            if [ "$found_footer" -eq 0 ]; then
+                # First footer line found. Check if preceded by a blank line.
+                # Since we are reading line by line, we need to know the previous line content.
+                # However, a simpler way is: if we found a footer, it must be that PREV_LINE was empty.
+                if [ "$PREV_LINE_EMPTY" -ne 1 ]; then
+                    echo "ERROR: Footers must be preceded by a blank line."
+                    rm "$STRIPPED_MSG_FILE"
+                    exit 1
+                fi
+                found_footer=1
+            fi
+        else
+            # Not a footer token line. 
+            if [ "$found_footer" -eq 1 ]; then
+                # If we are in/after footer section, only blank lines are allowed or more footers.
+                if [ -n "$line" ]; then
+                    echo "ERROR: Invalid content in/after footer section: $line"
+                    rm "$STRIPPED_MSG_FILE"
+                    exit 1
+                fi
+            fi
+        fi
+    fi
+    
+    if [ -z "$line" ]; then
+        PREV_LINE_EMPTY=1
+    else
+        PREV_LINE_EMPTY=0
+    fi
+done < "$STRIPPED_MSG_FILE"
+
+# Print the validated commit message for verification
+echo "----------------------------------------"
+cat "$STRIPPED_MSG_FILE"
+echo "----------------------------------------"
+
+rm "$STRIPPED_MSG_FILE"
+exit 0
