@@ -8,13 +8,6 @@ set "REPO_ROOT=%~1"
 if "%REPO_ROOT%"=="" set "REPO_ROOT=%~dp0..\.."
 cd /d "%REPO_ROOT%"
 
-echo Updating git submodules...
-git submodule update --init --recursive
-if %ERRORLEVEL% neq 0 (
-    echo ❌ Failed to update submodules.
-    exit /b %ERRORLEVEL%
-)
-
 echo Setting git hooks...
 git config --local core.hooksPath ./toolkit/hooks
 git config --local commit.template ./toolkit/resources/git-commit-msg-template.txt

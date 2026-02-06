@@ -8,8 +8,6 @@ set -e
 REPO_ROOT=${1:-$(cd "$(dirname "$0")/../.." && pwd)}
 cd "$REPO_ROOT" || exit 1
 
-git submodule update --init --recursive
-
 echo "Setting git hooks"
 git config --local core.hooksPath ./toolkit/hooks
 git config --local commit.template ./toolkit/resources/git-commit-msg-template.txt
