@@ -2,7 +2,54 @@
 set -e
 REPO_ROOT=$(git rev-parse --show-toplevel) || exit 0
 cd "$REPO_ROOT" || exit 1
+
+OS=$(uname -s)
+ARCH=$(uname -m)
+
+# Normalize architecture
+case "$ARCH" in
+  x86_64|amd64)
+    ARCH="x86_64"
+    ;;
+  aarch64|arm64)
+    ARCH="aarch64"
+    ;;
+  *)
+    echo "❌ Unsupported architecture: $ARCH"
+    exit 1
+    ;;
+esac
+
+# Normalize OS
+case "$OS" in
+  Linux)
+    PLATFORM="linux-$ARCH"
+    JAVA_BIN="bin/java"
+    ;;
+  Darwin)
+    PLATFORM="macos-$ARCH"
+    JAVA_BIN="bin/java"
+    ;;
+  MINGW*|MSYS*|CYGWIN*)
+    PLATFORM="windows-$ARCH"
+    JAVA_BIN="bin/java.exe"
+    ;;
+  *)
+    echo "❌ Unsupported OS: $OS"
+    exit 1
+    ;;
+esac
+
 FORMATTER="toolkit/bin/formatter.jar"
+RUNTIME="toolkit/bin/java/$PLATFORM/$JAVA_BIN"
+
+if [ ! -f "$RUNTIME" ]; then
+  echo "❌ Bundled Java runtime not found:"
+  echo "   $RUNTIME"
+  echo "Detected platform: $PLATFORM"
+  exit 1
+fi
+
 FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.java$' || true)
 [ -n "$FILES" ] || exit 0
 echo "🎨 Formatting Java files (google-java-format)..."

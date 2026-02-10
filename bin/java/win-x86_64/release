@@ -1,0 +1,2 @@
+JAVA_VERSION="25.0.2"
+MODULES="java.base java.compiler java.logging jdk.internal.opt jdk.zipfs jdk.compiler jdk.unsupported"
