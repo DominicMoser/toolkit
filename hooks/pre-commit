@@ -31,7 +31,7 @@ case "$OS" in
     JAVA_BIN="bin/java"
     ;;
   MINGW*|MSYS*|CYGWIN*)
-    PLATFORM="windows-$ARCH"
+    PLATFORM="win-$ARCH"
     JAVA_BIN="bin/java.exe"
     ;;
   *)
@@ -54,6 +54,6 @@ FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.java$' || true
 [ -n "$FILES" ] || exit 0
 echo "🎨 Formatting Java files (google-java-format)..."
 echo $FILES
-echo "$FILES" | xargs java -jar "$FORMATTER" --replace
+echo "$FILES" | xargs "$RUNTIME" -jar "$FORMATTER" --replace
 echo "$FILES" | xargs git add
 echo "✅ Java formatting complete"
